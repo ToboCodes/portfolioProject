@@ -35,7 +35,7 @@ pipeline {
         stage('Test') {
             steps {
                 // Requerimiento 4: Ejecutar los tests de Maven
-                mvn 'test'
+                sh 'mvn test'
                 junit '**/target/surefire-reports/TEST-*.xml'
             }
         }
@@ -43,7 +43,7 @@ pipeline {
         stage('Validate') {
             steps {
                 // Requerimiento 5: Ejecutar el pipeline desde el repositorio
-                sh "echo "
+                sh 'echo "Se completa pipeline sin errores"'
             }
         }
     }
