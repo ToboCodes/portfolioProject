@@ -9,7 +9,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Requerimiento 1: Obtener el código desde GitHub
                 checkout([
                     $class: 'GitSCM', 
                     branches: [[name: 'main']],
@@ -20,21 +19,18 @@ pipeline {
 
         stage('Build') {
             steps {
-                // Requerimiento 2: Generar los artefactos
                 sh 'mvn -B -DskipTests clean package'
             }
         }
 
         stage('Archive') {
             steps {
-                // Requerimiento 3: Archivar los artefactos
                 archiveArtifacts artifacts: "**/target/*.jar", fingerprint: true
             }
         }
 
         stage('Test') {
             steps {
-                // Requerimiento 4: Ejecutar los tests de Maven
                 sh 'mvn test'
                 junit '**/target/surefire-reports/TEST-*.xml'
             }
@@ -45,9 +41,15 @@ pipeline {
                 script {
                     def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'sonar', variable: 'sonarLogin')]) {
-                        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://SonarQube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=gs-gradle -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=src/main/java/com/kibernumacademy/miapp -Dsonar.tests=src/test/java/com/kibernumacademy/miapp -Dsonar.language=java -Dsonar.java.binaries=."
+                        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://SonarQube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=mv-maven -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=src/main/java/com/kibernumacademy/miapp -Dsonar.tests=src/test/java/com/kibernumacademy/miapp -Dsonar.language=java -Dsonar.java.binaries=."
                     }
                 }
+            }
+        }
+        
+        stage('Quality Gate') {
+            steps {
+                waitForQualityGate abortPipeline: true
             }
         }
         
@@ -74,12 +76,5 @@ pipeline {
         //         )
         //     }
         // }
-
-        stage('Validate') {
-            steps {
-                // Requerimiento 5: Ejecutar el pipeline desde el repositorio
-                sh 'echo "Se completa pipeline sin errores"'
-            }
-        }
     }
 }
